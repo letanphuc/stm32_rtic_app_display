@@ -1,0 +1,37 @@
+{
+    // override the default setting (`cargo check --all-targets`) which produces the following error
+    // "can't find crate for `test`" when the default compilation target is a no_std target
+    // with these changes RA will call `cargo check --bins` on save
+    "rust-analyzer.checkOnSave.allTargets": false,
+    "rust-analyzer.checkOnSave.extraArgs": [
+        "--bins"
+    ],
+    "workbench.colorCustomizations": {
+        "activityBar.activeBackground": "#99e6dd",
+        "activityBar.background": "#99e6dd",
+        "activityBar.foreground": "#15202b",
+        "activityBar.inactiveForeground": "#15202b99",
+        "activityBarBadge.background": "#cc65d9",
+        "activityBarBadge.foreground": "#15202b",
+        "commandCenter.border": "#15202b99",
+        "sash.hoverBorder": "#99e6dd",
+        "statusBar.background": "#70dccf",
+        "statusBar.foreground": "#15202b",
+        "statusBarItem.hoverBackground": "#47d2c1",
+        "statusBarItem.remoteBackground": "#70dccf",
+        "statusBarItem.remoteForeground": "#15202b",
+        "tab.activeBorder": "#99e6dd",
+        "titleBar.activeBackground": "#70dccf",
+        "titleBar.activeForeground": "#15202b",
+        "titleBar.inactiveBackground": "#70dccf99",
+        "titleBar.inactiveForeground": "#15202b99"
+    },
+    "peacock.color": "#70dccf",
+    "cSpell.words": [
+        "defmt",
+        "framebuffer",
+        "ltdc",
+        "rtic",
+        "semihosting"
+    ]
+}

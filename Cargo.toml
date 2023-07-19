@@ -1,0 +1,18 @@
+[package]
+# TODO fix `authors` and `name` if you didn't use `cargo-generate`
+name = "test-app"
+edition = "2021"
+version = "0.1.0"
+
+[dependencies]
+cortex-m = { version = "0.7", features = ["critical-section-single-core"] }
+defmt = { version = "0.3", features = ["encoding-rzcobs"] }
+defmt-rtt = "0.4.0"
+rtic = { version = "2.0.0", features = ["thumbv7-backend"] }
+systick-monotonic = "1.0.1"
+panic-semihosting = "0.6.0"
+embedded-graphics = "0.8.0"
+
+[dependencies.stm32f7xx-hal]
+version = "0.7.0"
+features = ["stm32f746", "rt", "ltdc", "usb_fs"]
