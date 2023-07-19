@@ -30,9 +30,13 @@
     "cSpell.words": [
         "defmt",
         "framebuffer",
+        "heapless",
         "ltdc",
+        "monotonics",
         "pixelcolor",
+        "PROFONT",
         "rtic",
-        "semihosting"
+        "semihosting",
+        "Systick"
     ]
 }

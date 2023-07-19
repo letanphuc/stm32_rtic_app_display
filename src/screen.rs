@@ -33,10 +33,6 @@ pub const DISCO_SCREEN_CONFIG: DisplayConfig = DisplayConfig {
     pixel_clock_pol: false,
 };
 
-const FB_GRAPHICS_SIZE: usize =
-    (DISCO_SCREEN_CONFIG.active_width as usize) * (DISCO_SCREEN_CONFIG.active_height as usize);
-static mut FB_LAYER1: [u16; FB_GRAPHICS_SIZE] = [0; FB_GRAPHICS_SIZE];
-
 pub struct Stm32F7DiscoDisplay<T: 'static + SupportedWord> {
     pub controller: DisplayController<T>,
     enable_pin: Pin<'I', 12, Output>,
@@ -93,6 +89,7 @@ impl<T: 'static + SupportedWord> Stm32F7DiscoDisplay<T> {
             backlight_pin,
         }
     }
+
     pub fn enable(&mut self) {
         self.enable_pin.set_high();
     }
@@ -102,11 +99,16 @@ impl<T: 'static + SupportedWord> Stm32F7DiscoDisplay<T> {
     pub fn backlight_on(&mut self) {
         self.backlight_pin.set_high();
     }
+    #[allow(dead_code)]
     pub fn backlight_off(&mut self) {
         self.backlight_pin.set_low();
     }
 }
 
+// Fixme: hard code static frame buffer here
+const FB_GRAPHICS_SIZE: usize =
+    (DISCO_SCREEN_CONFIG.active_width as usize) * (DISCO_SCREEN_CONFIG.active_height as usize);
+static mut FB_LAYER1: [u16; FB_GRAPHICS_SIZE] = [0; FB_GRAPHICS_SIZE];
 impl Stm32F7DiscoDisplay<u16> {
     pub fn config_layer1(&mut self) {
         self.controller
