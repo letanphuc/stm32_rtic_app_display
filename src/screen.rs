@@ -33,10 +33,14 @@ pub const DISCO_SCREEN_CONFIG: DisplayConfig = DisplayConfig {
     pixel_clock_pol: false,
 };
 
+const FB_GRAPHICS_SIZE: usize =
+    (DISCO_SCREEN_CONFIG.active_width as usize) * (DISCO_SCREEN_CONFIG.active_height as usize);
+static mut FB_LAYER1: [u16; FB_GRAPHICS_SIZE] = [0; FB_GRAPHICS_SIZE];
+
 pub struct Stm32F7DiscoDisplay<T: 'static + SupportedWord> {
     pub controller: DisplayController<T>,
-    pub enable: Pin<'I', 12, Output>,
-    pub backlight: Pin<'K', 3, Output>,
+    enable_pin: Pin<'I', 12, Output>,
+    backlight_pin: Pin<'K', 3, Output>,
 }
 
 impl<T: 'static + SupportedWord> Stm32F7DiscoDisplay<T> {
@@ -80,14 +84,33 @@ impl<T: 'static + SupportedWord> Stm32F7DiscoDisplay<T> {
         pins.pk7.into_alternate::<14>().set_speed(Speed::VeryHigh);
 
         let _ = pins.hse_out.into_push_pull_output();
-        let enable = pins.enable.into_push_pull_output();
-        let backlight = pins.backlight.into_push_pull_output();
+        let enable_pin = pins.enable.into_push_pull_output();
+        let backlight_pin = pins.backlight.into_push_pull_output();
 
         Stm32F7DiscoDisplay {
             controller,
-            enable,
-            backlight,
+            enable_pin,
+            backlight_pin,
         }
+    }
+    pub fn enable(&mut self) {
+        self.enable_pin.set_high();
+    }
+    pub fn disable(&mut self) {
+        self.enable_pin.set_low();
+    }
+    pub fn backlight_on(&mut self) {
+        self.backlight_pin.set_high();
+    }
+    pub fn backlight_off(&mut self) {
+        self.backlight_pin.set_low();
+    }
+}
+
+impl Stm32F7DiscoDisplay<u16> {
+    pub fn config_layer1(&mut self) {
+        self.controller
+            .config_layer(Layer::L1, unsafe { &mut FB_LAYER1 }, PixelFormat::RGB565);
     }
 }
 
