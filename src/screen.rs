@@ -1,7 +1,9 @@
+use defmt::println;
 use embedded_graphics::{
     geometry::Size,
-    pixelcolor::{Rgb565, RgbColor},
-    prelude::{DrawTarget, OriginDimensions},
+    pixelcolor::Rgb565,
+    prelude::{Dimensions, DrawTarget, IntoStorage, OriginDimensions},
+    primitives::{PointsIter, Rectangle},
     Pixel,
 };
 
@@ -109,6 +111,7 @@ impl<T: 'static + SupportedWord> Stm32F7DiscoDisplay<T> {
 const FB_GRAPHICS_SIZE: usize =
     (DISCO_SCREEN_CONFIG.active_width as usize) * (DISCO_SCREEN_CONFIG.active_height as usize);
 static mut FB_LAYER1: [u16; FB_GRAPHICS_SIZE] = [0; FB_GRAPHICS_SIZE];
+
 impl Stm32F7DiscoDisplay<u16> {
     pub fn config_layer1(&mut self) {
         self.controller
@@ -131,13 +134,63 @@ impl DrawTarget for Stm32F7DiscoDisplay<u16> {
         I: IntoIterator<Item = Pixel<Self::Color>>,
     {
         for Pixel(coord, color) in pixels.into_iter() {
-            let value: u16 = (color.b() as u16 & 0x1F)
-                | ((color.g() as u16 & 0x3F) << 5)
-                | ((color.r() as u16 & 0x1F) << 11);
+            let value = color.into_storage();
+
             self.controller
                 .draw_pixel(Layer::L1, coord.x as usize, coord.y as usize, value);
         }
 
         Ok(())
+    }
+
+    fn fill_solid(&mut self, area: &Rectangle, color: Self::Color) -> Result<(), Self::Error> {
+        // println!("fill_solid is called");
+        let top_left = area.top_left;
+        let top_left = (
+            top_left.x.try_into().unwrap(),
+            top_left.y.try_into().unwrap(),
+        );
+
+        let bottom_right = area.bottom_right().unwrap();
+        let bottom_right = (
+            bottom_right.x.try_into().unwrap(),
+            bottom_right.y.try_into().unwrap(),
+        );
+
+        let color = color.into_storage();
+
+        unsafe {
+            self.controller
+                .draw_rectangle(Layer::L1, top_left, bottom_right, color as u32);
+        }
+
+        Ok(())
+    }
+
+    fn fill_contiguous<I>(&mut self, area: &Rectangle, colors: I) -> Result<(), Self::Error>
+    where
+        I: IntoIterator<Item = Self::Color>,
+    {
+        // Clamp area to drawable part of the display target
+        let drawable_area = area.intersection(&self.bounding_box());
+
+        // println!("fill_contiguous is called {}", points);
+
+        // Check that there are visible pixels to be drawn
+        if drawable_area.size != Size::zero() {
+            println!("start");
+            for Pixel(coord, color) in area
+                .points()
+                .zip(colors)
+                .filter(|(pos, _color)| drawable_area.contains(*pos))
+                .map(|(pos, color)| Pixel(pos, color))
+            {
+                println!("{}:{} - {}", coord.x, coord.y, color.into_storage());
+            }
+            println!("end");
+            Ok(())
+        } else {
+            Ok(())
+        }
     }
 }

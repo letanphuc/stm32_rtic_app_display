@@ -1,6 +1,7 @@
-use stm32f7xx_hal::gpio::GpioExt;
-use stm32f7xx_hal::gpio::{Floating, Input, Pin};
+use fugit::RateExtU32;
+use stm32f7xx_hal::gpio::{Floating, GpioExt, Input, Pin};
 use stm32f7xx_hal::pac::{Peripherals, DMA2D, LTDC};
+use stm32f7xx_hal::rcc::{HSEClock, HSEClockMode, RccExt};
 
 pub struct DisplayPins {
     pub pe4: Pin<'E', 4, Input<Floating>>,
@@ -123,6 +124,14 @@ impl Board {
             enable: gpioi.pi12,
             backlight: gpiok.pk3,
         };
+
+        let rcc = p.RCC.constrain();
+        let _clocks = rcc
+            .cfgr
+            .hse(HSEClock::new(25_000_000.Hz(), HSEClockMode::Bypass))
+            .sysclk(216_000_000.Hz())
+            .hclk(216_000_000.Hz())
+            .freeze();
 
         Board {
             display_pins,

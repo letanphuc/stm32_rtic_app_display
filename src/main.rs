@@ -23,6 +23,7 @@ mod app {
     use heapless::String;
     use profont::PROFONT_24_POINT;
     use rtic_monotonics::systick::*;
+    use rtic_monotonics::Monotonic;
     use stm32f7xx_hal::ltdc::Layer;
 
     #[shared]
@@ -75,28 +76,53 @@ mod app {
 
     #[task(shared=[display], local = [counter], priority = 1)]
     async fn update_number(mut cx: update_number::Context) {
-        loop {
-            println!("Task runs");
-            let mut str: String<32> = String::new();
-
-            let c = *cx.local.counter;
-            *cx.local.counter += 1;
-            let _ret = write!(&mut str, "{}", c);
-
-            println!("c = {}, str = {}", c, str.as_str());
-            let style = embedded_graphics::mono_font::MonoTextStyleBuilder::new()
+        let style: MonoTextStyle<'_, Rgb565> =
+            embedded_graphics::mono_font::MonoTextStyleBuilder::new()
                 .font(&PROFONT_24_POINT)
                 .text_color(Rgb565::GREEN)
                 .background_color(Rgb565::BLACK)
                 .build();
 
+        println!("Task runs");
+        let mut fps = 0;
+        let mut start = Systick::now();
+
+        loop {
+            let mut str: String<32> = String::new();
+
+            let c = *cx.local.counter;
+            *cx.local.counter = (*cx.local.counter + 1) % 10000;
+            let _ret = write!(&mut str, "{}", c);
+
             let text = Text::new(str.as_str(), Point::new(200, 100), style);
+
+            let rec = embedded_graphics::primitives::Rectangle::new(
+                Point::new(20, 20),
+                Size::new(50, 40),
+            )
+            .into_styled(
+                embedded_graphics::primitives::PrimitiveStyleBuilder::new()
+                    .stroke_color(Rgb565::RED)
+                    .stroke_width(5)
+                    .fill_color(Rgb565::GREEN)
+                    .build(),
+            );
 
             cx.shared.display.lock(|d| {
                 text.draw(d).ok();
+                rec.draw(d).ok();
             });
 
-            Systick::delay(100.millis()).await;
+            fps += 1;
+
+            let n = Systick::now();
+            let d = (n - start).to_millis();
+
+            if d > 1000 {
+                println!("fps = {}", fps as f32 * 1000_f32 / d as f32);
+                start = n;
+                fps = 0;
+            }
         }
     }
 }

@@ -30,13 +30,22 @@
     "cSpell.words": [
         "defmt",
         "framebuffer",
+        "gpioe",
+        "gpiog",
+        "GPIOH",
+        "gpioi",
+        "gpioj",
+        "gpiok",
         "heapless",
+        "HSYNC",
+        "LTCD",
         "ltdc",
         "monotonics",
         "pixelcolor",
         "PROFONT",
         "rtic",
         "semihosting",
-        "Systick"
+        "Systick",
+        "VSYNC"
     ]
 }
